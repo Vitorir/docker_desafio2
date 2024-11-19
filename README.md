@@ -30,7 +30,7 @@ Este projeto é um desafio que implementa uma aplicação Node.js com Nginx como
 - Roda na porta 3000
 - Conecta com MySQL
 - Cria uma tabela `people`
-- Retorna uma página HTML com a mensagem "Full Cycle Rocks!"
+- Retorna uma página HTML com uma lista de usuários
 
 ### Nginx
 - Atua como proxy reverso
@@ -65,19 +65,6 @@ http://localhost:8080
 - **nginx**: Servidor Nginx (proxy reverso)
 - **db**: Banco de dados MySQL
 
-## 🔍 Verificando os Logs
-
-
-
-
-## 🗃️ Estrutura do Banco de Dados
-
-A aplicação cria automaticamente:
-- Database: `nodedb`
-- Tabela: `people`
-  - Campos:
-    - id (INT, AUTO_INCREMENT, PRIMARY KEY)
-    - name (VARCHAR(255))
 
 ## 🔀 Fluxo da Aplicação
 
@@ -100,6 +87,5 @@ Para desenvolvimento local, os arquivos da aplicação Node.js estão mapeados e
 
 ## 📝 Notas
 
-- O arquivo `.gitignore` está configurado para ignorar `node_modules/` e arquivos do MySQL
 - O Dockerize é utilizado para garantir que o Node.js só inicie após o MySQL estar pronto
 - Volumes persistentes são usados para o MySQL
