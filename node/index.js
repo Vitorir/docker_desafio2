@@ -1,6 +1,11 @@
 const express = require('express')
 const app = express()
 const port = 3000
+
+// Adicionar para processar POST requests
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
+
 const config = {
     host: 'db',
     user: 'root',
@@ -23,6 +28,7 @@ const setupDatabase = async () => {
                 CREATE TABLE people (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     name VARCHAR(255) NOT NULL,
+                    comment TEXT,
                     visited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             `;
@@ -41,34 +47,45 @@ const setupDatabase = async () => {
 }
 
 setupDatabase().then(() => {
-    app.get('/', (req, res) => {
-        const insertVisitor = `INSERT INTO people(name) VALUES('Full Cycle Visitor')`
-        connection.query(insertVisitor, (error) => {
+    // Rota para processar o formulário
+    app.post('/register', (req, res) => {
+        const { name, comment } = req.body;
+        const insertVisitor = `INSERT INTO people(name, comment) VALUES(?, ?)`
+        
+        connection.query(insertVisitor, [name || 'Anônimo', comment || 'Sem comentário'], (error) => {
             if (error) {
                 console.error('Erro ao inserir visitante:', error);
-                res.status(500).send('Erro ao registrar visita');
+                res.status(500).json({ error: 'Erro ao registrar visita' });
+                return;
+            }
+            res.redirect('/');
+        });
+    });
+
+    app.get('/', (req, res) => {
+        const query = `
+            SELECT 
+                id,
+                name,
+                comment,
+                DATE_FORMAT(visited_at, '%d/%m/%Y') as date,
+                DATE_FORMAT(visited_at, '%H:%i:%s') as time
+            FROM people 
+            ORDER BY visited_at DESC
+            LIMIT 100
+        `;
+
+        connection.query(query, (error, results) => {
+            if (error) {
+                console.error('Erro na consulta:', error);
+                res.status(500).send('Erro ao buscar estatísticas');
                 return;
             }
 
-            const query = `
-                SELECT 
-                    COUNT(*) as total, 
-                    DATE_FORMAT(visited_at, '%Y-%m-%d') as date 
-                FROM people 
-                GROUP BY date 
-                ORDER BY date DESC
-            `;
-
-            connection.query(query, (error, results) => {
-                if (error) {
-                    console.error('Erro na consulta:', error);
-                    res.status(500).send('Erro ao buscar estatísticas');
-                    return;
-                }
-
-                const totalVisitors = results.reduce((acc, curr) => acc + curr.total, 0)
-                
-                const html = `
+            const totalVisitors = results.length;
+            const uniqueDays = new Set(results.map(r => r.date)).size;
+            
+            const html = `
                 <!DOCTYPE html>
                 <html lang="pt-BR">
                 <head>
@@ -208,18 +225,111 @@ setupDatabase().then(() => {
                             color: #64ffda;
                         }
 
-                        @media (max-width: 768px) {
-                            .container {
-                                padding: 20px;
-                            }
+                        .form-container {
+                            background: rgba(255, 255, 255, 0.05);
+                            border-radius: 16px;
+                            padding: 24px;
+                            margin: 40px 0;
+                        }
 
-                            h1 {
-                                font-size: 2.5em;
-                            }
+                        .form-title {
+                            color: #64ffda;
+                            margin-bottom: 20px;
+                            font-size: 1.5em;
+                        }
 
-                            .stat-number {
-                                font-size: 2em;
-                            }
+                        .form-group {
+                            margin-bottom: 16px;
+                        }
+
+                        .form-label {
+                            display: block;
+                            margin-bottom: 8px;
+                            color: #8892b0;
+                        }
+
+                        .form-input, .form-textarea {
+                            width: 100%;
+                            padding: 12px;
+                            background: rgba(255, 255, 255, 0.1);
+                            border: 1px solid rgba(255, 255, 255, 0.2);
+                            border-radius: 8px;
+                            color: #e6f1ff;
+                            font-family: 'Poppins', sans-serif;
+                        }
+
+                        .form-textarea {
+                            height: 100px;
+                            resize: vertical;
+                        }
+
+                        .form-button {
+                            background: #64ffda;
+                            color: #0a192f;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s ease;
+                        }
+
+                        .form-button:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 4px 12px rgba(100, 255, 218, 0.2);
+                        }
+
+                        .comments-container {
+                            margin-top: 40px;
+                        }
+
+                        .comment-card {
+                            background: rgba(255, 255, 255, 0.05);
+                            border-radius: 12px;
+                            padding: 20px;
+                            margin-bottom: 16px;
+                            transition: transform 0.3s ease;
+                        }
+
+                        .comment-card:hover {
+                            transform: translateX(5px);
+                        }
+
+                        .comment-header {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 12px;
+                            color: #64ffda;
+                        }
+
+                        .comment-name {
+                            font-weight: 600;
+                        }
+
+                        .comment-time {
+                            color: #8892b0;
+                            font-size: 0.9em;
+                        }
+
+                        .comment-text {
+                            color: #e6f1ff;
+                            line-height: 1.5;
+                        }
+
+                        .loading {
+                            display: none;
+                            text-align: center;
+                            padding: 20px;
+                            color: #64ffda;
+                        }
+
+                        @keyframes fadeIn {
+                            from { opacity: 0; transform: translateY(10px); }
+                            to { opacity: 1; transform: translateY(0); }
+                        }
+
+                        .fade-in {
+                            animation: fadeIn 0.5s ease forwards;
                         }
                     </style>
                 </head>
@@ -227,7 +337,7 @@ setupDatabase().then(() => {
                     <div class="container">
                         <div class="header">
                             <h1>Full Cycle Rocks!</h1>
-                            <div class="subtitle">Desafio Docker - Node.js com Nginx</div>
+                            <div class="subtitle">Confira os comentários dos visitantes!</div>
                         </div>
 
                         <div class="stats-container">
@@ -236,23 +346,37 @@ setupDatabase().then(() => {
                                 <div class="stat-label">Visitantes Totais</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-number">${results.length}</div>
+                                <div class="stat-number">${uniqueDays}</div>
                                 <div class="stat-label">Dias Ativos</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-number">${results[0]?.total || 0}</div>
-                                <div class="stat-label">Visitas Hoje</div>
                             </div>
                         </div>
 
-                        <div class="history-container">
-                            <h2 class="history-title">Histórico de Visitas</h2>
+                        <div class="comments-container">
+                            <h2 class="form-title">Comentários Recentes</h2>
                             ${results.map(row => `
-                                <div class="history-item">
-                                    <span class="history-date">${row.date}</span>
-                                    <span class="history-visits">${row.total} visitantes</span>
+                                <div class="comment-card fade-in">
+                                    <div class="comment-header">
+                                        <span class="comment-name">${row.name}</span>
+                                        <span class="comment-time">${row.date} às ${row.time}</span>
+                                    </div>
+                                    <div class="comment-text">${row.comment}</div>
                                 </div>
                             `).join('')}
+                        </div>
+
+                        <div class="form-container fade-in">
+                            <h2 class="form-title">Deixe seu comentário também!</h2>
+                            <form action="/register" method="POST" id="visitorForm">
+                                <div class="form-group">
+                                    <label class="form-label" for="name">Seu Nome</label>
+                                    <input type="text" id="name" name="name" class="form-input" placeholder="Digite seu nome" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="comment">Comentário</label>
+                                    <textarea id="comment" name="comment" class="form-textarea" placeholder="Deixe seu comentário" required></textarea>
+                                </div>
+                                <button type="submit" class="form-button">Enviar Comentário</button>
+                            </form>
                         </div>
 
                         <div class="footer">
@@ -265,11 +389,25 @@ setupDatabase().then(() => {
                             <p style="margin-top: 20px">Desenvolvido para o Desafio Full Cycle</p>
                         </div>
                     </div>
+
+                    <script>
+                        // Adiciona classe fade-in aos elementos quando eles aparecem na tela
+                        const observer = new IntersectionObserver((entries) => {
+                            entries.forEach(entry => {
+                                if (entry.isIntersecting) {
+                                    entry.target.classList.add('fade-in');
+                                }
+                            });
+                        });
+
+                        document.querySelectorAll('.comment-card').forEach((card) => {
+                            observer.observe(card);
+                        });
+                    </script>
                 </body>
                 </html>
-                `
-                res.send(html)
-            });
+            `;
+            res.send(html);
         });
     });
 
