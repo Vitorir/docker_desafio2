@@ -4,6 +4,7 @@ Este projeto é um desafio que implementa uma aplicação Node.js com Nginx como
 
 ## 🚀 Estrutura do Projeto
 
+```bash
 .
 ├── docker-compose.yaml
 ├── nginx/
@@ -16,7 +17,7 @@ Este projeto é um desafio que implementa uma aplicação Node.js com Nginx como
 │ ├── package.json
 │ └── package-lock.json
 └── README.md
-
+```
 
 ## 📋 Requisitos
 
