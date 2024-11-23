@@ -1,0 +1,30 @@
+steps:
+  # Build Node.js image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/fullcycle-node', './node']
+
+  # Build Nginx image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/fullcycle-nginx', './nginx']
+
+  # Push Node.js image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/fullcycle-node']
+
+  # Push Nginx image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/fullcycle-nginx']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'run'
+      - 'services'
+      - 'replace'
+      - 'service.yaml'
+      - '--platform=managed'
+      - '--region=us-central1'
+
+images:
+  - 'gcr.io/$PROJECT_ID/fullcycle-node'
+  - 'gcr.io/$PROJECT_ID/fullcycle-nginx'

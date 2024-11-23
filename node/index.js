@@ -7,10 +7,11 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
 const config = {
-    host: 'db',
-    user: 'root',
-    password: 'root',
-    database: 'nodedb'
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    sockerPath: process.env.INSTANCE_UNIX_SOCKET
 };
 const mysql = require('mysql')
 const connection = mysql.createConnection(config)

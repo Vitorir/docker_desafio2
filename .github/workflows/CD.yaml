@@ -1,0 +1,39 @@
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [ feature/deploy-application ]
+
+env:
+  PROJECT_ID: your-project-id
+  SERVICE_NAME: fullcycle-app
+  REGION: us-central1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Setup Google Cloud
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        project_id: ${{ env.PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        export_default_credentials: true
+
+    - name: Build and Push Image
+      run: |
+        gcloud builds submit \
+          --tag gcr.io/$PROJECT_ID/$SERVICE_NAME
+
+    - name: Deploy to Cloud Run
+      run: |
+        gcloud run deploy $SERVICE_NAME \
+          --image gcr.io/$PROJECT_ID/$SERVICE_NAME \
+          --platform managed \
+          --region $REGION \
+          --allow-unauthenticated \
+          --add-cloudsql-instances $PROJECT_ID:$REGION:fullcycle-mysql \
+          --set-env-vars DB_USER=root,DB_PASS=${{ secrets.DB_PASS }},DB_NAME=nodedb
