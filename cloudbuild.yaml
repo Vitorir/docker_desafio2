@@ -3,3 +3,9 @@ steps:
 - id: "Rodando docker-compose"
   name: "gcr.io/$PROJECT_ID/docker-compose"
   args: ['-f', 'docker-compose.cloudbuild.yaml', 'up', '-d']
+
+
+options:
+  logging: CLOUD_LOGGING_ONLY  # Enviar logs somente para o Cloud Logging
+
+serviceAccount: conta-servico@inlaid-course-418423.iam.gserviceaccount.com
