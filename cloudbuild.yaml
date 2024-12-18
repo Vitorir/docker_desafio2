@@ -1,9 +1,12 @@
 steps:
 
 - id: "Rodando docker-compose"
-  name: "gcr.io/$PROJECT_ID/docker-compose"
+  name: "gcr.io/$PROJECT_ID/docker-compose:1.28.2"
   args: ['-f', 'docker-compose.cloudbuild.yaml', 'up', '-d']
 
+- id: "Rodando docker ps"
+  name: "gcr.io/cloud-builder/docker"
+  args: ['ps']
 
 options:
   logging: CLOUD_LOGGING_ONLY  # Enviar logs somente para o Cloud Logging
