@@ -9,6 +9,6 @@ steps:
   args: ['ps']
 
 options:
-  logging: CLOUD_LOGGING_ONLY  # Enviar logs somente para o Cloud Logging
+  logging: CLOUD_LOGGING_ONLY  
 
 serviceAccount: conta-servico@inlaid-course-418423.iam.gserviceaccount.com
