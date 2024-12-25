@@ -15,6 +15,9 @@ const config = {
 const mysql = require('mysql')
 const connection = mysql.createConnection(config)
 
+const appName = process.env.APP_NAME || 'Unknown App';
+console.log(`Iniciando ${appName}...`);
+
 const setupDatabase = async () => {
     return new Promise((resolve, reject) => {
         connection.query('DROP TABLE IF EXISTS people', (error) => {
@@ -52,7 +55,10 @@ setupDatabase().then(() => {
         const { name, comment } = req.body;
         const insertVisitor = `INSERT INTO people(name, comment) VALUES(?, ?)`
         
-        connection.query(insertVisitor, [name || 'Anônimo', comment || 'Sem comentário'], (error) => {
+        connection.query(insertVisitor, [
+            `${name || 'Anônimo'} (via ${appName})`, 
+            comment || 'Sem comentário'
+        ], (error) => {
             if (error) {
                 console.error('Erro ao inserir visitante:', error);
                 res.status(500).json({ error: 'Erro ao registrar visita' });
@@ -91,7 +97,7 @@ setupDatabase().then(() => {
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Full Cycle Rocks!</title>
+                    <title>Seja Bem-Vindo!</title>
                     <link rel="preconnect" href="https://fonts.googleapis.com">
                     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
                     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -331,13 +337,24 @@ setupDatabase().then(() => {
                         .fade-in {
                             animation: fadeIn 0.5s ease forwards;
                         }
+
+                        .server-info {
+                            margin-top: 10px;
+                            padding: 5px 10px;
+                            background: rgba(100, 255, 218, 0.1);
+                            border-radius: 4px;
+                            display: inline-block;
+                            font-size: 0.9em;
+                            color: #64ffda;
+                        }
                     </style>
                 </head>
                 <body>
                     <div class="container">
                         <div class="header">
-                            <h1>Full Cycle Rocks!</h1>
+                            <h1>Seja Bem-Vindo!</h1>
                             <div class="subtitle">Confira os comentários dos visitantes!</div>
+                            <div class="server-info">Servidor: ${appName}</div>
                         </div>
 
                         <div class="stats-container">
@@ -386,7 +403,6 @@ setupDatabase().then(() => {
                                 <span class="tech-item">Nginx</span>
                                 <span class="tech-item">MySQL</span>
                             </div>
-                            <p style="margin-top: 20px">Desenvolvido para o Desafio Full Cycle</p>
                         </div>
                     </div>
 

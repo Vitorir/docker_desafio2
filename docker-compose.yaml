@@ -11,12 +11,13 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - app
+      - app1
+      - app2  
 
-  app:
+  app1:
     build: 
       context: node
-    container_name: app
+    container_name: app1
     entrypoint: >
       sh -c "
         echo 'Aguardando MySQL...' &&
@@ -35,6 +36,33 @@ services:
       - "3000:3000"
     depends_on: 
        - db
+    environment:
+      - APP_NAME=App1
+
+  app2:
+    build: 
+      context: node
+    container_name: app2
+    entrypoint: >
+      sh -c "
+        echo 'Aguardando MySQL...' &&
+        dockerize -wait tcp://db:3306 -timeout 20s &&
+        echo 'MySQL está pronto!' &&
+        echo 'Iniciando Node.js...' &&
+        node index.js
+      "
+    networks: 
+      - node-network
+    volumes: 
+      - ./node:/usr/src/app
+      - /usr/src/app/node_modules
+    tty: true
+    ports: 
+      - "3001:3000"  # Mapeando para uma porta diferente
+    depends_on: 
+       - db
+    environment:
+      - APP_NAME=App2
 
   db:
     image: mysql:5.7
@@ -51,8 +79,6 @@ services:
     networks: 
       - node-network
 
-    
-
 networks: 
   node-network:
-    driver: bridge      
+    driver: bridge

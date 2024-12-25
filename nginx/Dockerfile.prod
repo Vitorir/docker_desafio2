@@ -1,9 +1,10 @@
-FROM nginx:1.15.0-alpine
+# Usar a imagem base do Nginx
+FROM nginx:alpine
 
-# Remove todos os arquivos de configuração padrão
+# Remover a configuração padrão do Nginx
 RUN rm -rf /etc/nginx/conf.d/*
 
-# Copia nossa configuração
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copiar o arquivo de configuração do Nginx
+COPY nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 8080
