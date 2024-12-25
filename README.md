@@ -1,4 +1,4 @@
-# Desafio Full Cycle - Node.js com Nginx e MySQL
+# Aplicação - Node.js com Nginx e MySQL
 
 Este projeto é um desafio que implementa uma aplicação Node.js com Nginx como proxy reverso e MySQL como banco de dados, tudo rodando em containers Docker.
 
