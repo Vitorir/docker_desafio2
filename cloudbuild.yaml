@@ -1,0 +1,12 @@
+steps:
+  # Construir a imagem do Nginx
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/inlaid-course-418423/nginx', '-f', './nginx/Dockerfile.prod', './nginx']
+
+  # Construir a imagem da aplicação (app1 e app2)
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/inlaid-course-418423/app', '-f', './node/Dockerfile', './node']
+
+images:
+  - 'gcr.io/inlaid-course-418423/nginx'
+  - 'gcr.io/inlaid-course-418423/app'
